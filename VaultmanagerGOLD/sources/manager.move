@@ -9,14 +9,14 @@ module vault::manager {
     use aptos_framework::aptos_coin::{AptosCoin};
 
     const ENOT_INIT: u64 = 0;
-    const ENOT_ENOUGH_MBTC: u64 = 1;
+    const ENOT_ENOUGH_MGOLD: u64 = 1;
     const ENOT_DEPLOYER_ADDRESS: u64 = 2;
 
-    struct MBTC has key {}
+    struct MGOLD has key {}
 
     struct VaultInfo has key {
-        mint_cap: coin::MintCapability<MBTC>,
-        burn_cap: coin::BurnCapability<MBTC>,
+        mint_cap: coin::MintCapability<MGOLD>,
+        burn_cap: coin::BurnCapability<MGOLD>,
         total_staked: u64,
         repayed: SimpleMap<address, u64>,
         resource_cap: account::SignerCapability,
@@ -32,10 +32,10 @@ module vault::manager {
 
         // Create a resource account to hold the funds.
         let (resource, resource_cap) = account::create_resource_account(sender, x"01");
-        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<MBTC>(
+        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<MGOLD>(
             sender,
-            string::utf8(b"MBTC Token"),
-            string::utf8(b"MBTC"),
+            string::utf8(b"MGOLD Token"),
+            string::utf8(b"MGOLD"),
             18,
             false,
         );
@@ -44,9 +44,9 @@ module vault::manager {
         coin::destroy_freeze_cap(freeze_cap);
 
         // Register the resource account.
-        coin::register<MBTC>(sender);
+        coin::register<MGOLD>(sender);
         coin::register<AptosCoin>(&resource);
-        // coin::register<MBTC>(&resource);
+        // coin::register<MGOLD>(&resource);
 
         move_to(
             sender,
@@ -64,8 +64,8 @@ module vault::manager {
         
     }
 
-    /// Signet deposits `amount` amount of MBTC into the vault.
-    /// MBTC tokens to mint = (token_amount / total_staked_amount) * total_lp_supply
+    /// Signet deposits `amount` amount of MGOLD into the vault.
+    /// MGOLD tokens to mint = (token_amount / total_staked_amount) * total_lp_supply
     public entry fun deposit(
         sender: &signer, amountInMove: u64, amountOutUSD: u64
     ) acquires VaultInfo {
@@ -83,28 +83,28 @@ module vault::manager {
         vault_info.total_staked = vault_info.total_staked + amountOutUSD;
         simple_map::add(&mut vault_info.repayed, sender_addr, 0);
         // Mint shares
-        coin::deposit<MBTC>(
+        coin::deposit<MGOLD>(
             sender_addr,
-            coin::mint<MBTC>(amountOutUSD, &vault_info.mint_cap),
+            coin::mint<MGOLD>(amountOutUSD, &vault_info.mint_cap),
         );
 
     }
 
-    /// Withdraw some amount of AptosCoin based on total_staked of MBTC token.
+    /// Withdraw some amount of AptosCoin based on total_staked of MGOLD token.
     public entry fun withdraw(
-        sender: &signer, amountInMBTC: u64, amountOutMove: u64
+        sender: &signer, amountInMGOLD: u64, amountOutMove: u64
     ) acquires VaultInfo {
         let sender_addr = signer::address_of(sender);
         assert!(exists<VaultInfo>(@vault), ENOT_INIT);
 
         let vault_info = borrow_global_mut<VaultInfo>(@vault);
 
-        // Make sure resource sender's account has enough MBTC tokens.
-        assert!(coin::balance<MBTC>(sender_addr) >= amountInMBTC, ENOT_ENOUGH_MBTC);
+        // Make sure resource sender's account has enough MGOLD tokens.
+        assert!(coin::balance<MGOLD>(sender_addr) >= amountInMGOLD, ENOT_ENOUGH_MGOLD);
 
-        // Burn MBTC tokens of user
-        coin::burn<MBTC>(
-            coin::withdraw<MBTC>(sender, amountInMBTC), &vault_info.burn_cap
+        // Burn MGOLD tokens of user
+        coin::burn<MGOLD>(
+            coin::withdraw<MGOLD>(sender, amountInMGOLD), &vault_info.burn_cap
         );
 
         let resource_account_from_cap: signer =
@@ -112,11 +112,11 @@ module vault::manager {
         coin::transfer<AptosCoin>(&resource_account_from_cap, sender_addr, amountOutMove);
 
         // Update the info in the VaultInfo.
-        vault_info.total_staked = vault_info.total_staked - amountInMBTC;
+        vault_info.total_staked = vault_info.total_staked - amountInMGOLD;
 
         let repayed_amount =
             simple_map::borrow_mut(&mut vault_info.repayed, &sender_addr);
-        *repayed_amount = *repayed_amount + amountInMBTC;
+        *repayed_amount = *repayed_amount + amountInMGOLD;
 
     }
 
@@ -241,7 +241,7 @@ module vault::manager {
         assert!(coin::balance<AptosCoin>(a_addr) == 100, ENOT_CORRECT_MINT_AMOUNT);
         init_module(a);
 
-        // Register for MBTC token
+        // Register for MGOLD token
         deposit(a, 100, 1000);
     }
 }

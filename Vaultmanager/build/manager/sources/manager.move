@@ -19,8 +19,7 @@ module vault::manager {
         burn_cap: coin::BurnCapability<MBTC>,
         total_staked: u64,
         repayed: SimpleMap<address, u64>,
-        resource_cap: account::SignerCapability,
-        
+        resource_cap: account::SignerCapability
         
     }
     
@@ -56,7 +55,6 @@ module vault::manager {
                 total_staked: 0,
                 repayed: simple_map::create(),
                 resource_cap: resource_cap,
-                
                 
             },
         );
@@ -120,16 +118,17 @@ module vault::manager {
 
     }
 
+    #[pure]
+    public fun get_fixed_interest_rate(): u64 {
+        return 150
+    }
 
     #[view]
-    // As only integer calculations occur here , we would return this value 
-    // and do the calculation in the JS code
-    // will be based on the volatility of the market
-    //This will be called for the BTC part and the calculations shall be done there
     public fun get_dynamic_interest_rate(account: address, amount: u64): u64 acquires VaultInfo{
         let vault_info = borrow_global<VaultInfo>(@vault);
         let contrib_inv = vault_info.total_staked / amount;
-        return contrib_inv
+        let dynamic_interest = 1 + contrib_inv + contrib_inv * contrib_inv;
+        return dynamic_interest
     }
 
 
