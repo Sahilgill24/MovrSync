@@ -1,4 +1,4 @@
-module tokens_addrx::Vault {
+module my_addrx::manager {
     use std::string;
     use std::signer;
     use std::option;
