@@ -1,5 +1,5 @@
 [package]
-name = "manager"
+name = "oracle"
 version = "1.0.0"
 authors = []
 
@@ -12,7 +12,6 @@ std = "0x1"
 
 [dev-addresses]
 
-
 [dependencies.AptosFramework]
 git = "https://github.com/aptos-labs/aptos-core.git"
 rev = "mainnet"
@@ -20,5 +19,3 @@ subdir = "aptos-move/framework/aptos-framework"
 
 [dependencies]
 Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/aptos/contracts", rev = "main" }
-
-[dev-dependencies]

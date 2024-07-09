@@ -3,6 +3,9 @@ module vault::manager {
     use std::signer;
     use std::option;
     use std::simple_map::{Self, SimpleMap};
+    use pyth::pyth;
+    use pyth::price::Price;
+    use pyth::price_identifier;
 
     use aptos_framework::coin;
     use aptos_framework::account;

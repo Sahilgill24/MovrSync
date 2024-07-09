@@ -4,6 +4,11 @@ module vault::manager {
     use std::option;
     use std::simple_map::{Self, SimpleMap};
 
+    use pyth::pyth;
+    use pyth::price::Price;
+    use pyth::price_identifier;
+    
+
     use aptos_framework::coin;
     use aptos_framework::account;
     use aptos_framework::aptos_coin::{AptosCoin};
@@ -87,6 +92,14 @@ module vault::manager {
             sender_addr,
             coin::mint<MGOLD>(amountOutUSD, &vault_info.mint_cap),
         );
+
+    }
+    public fun get_gold_usd_price(user: &signer, pyth_price_update: vector<vector<u8>>):Price {
+        let coins = coin::withdraw(user, pyth::get_update_fee(&pyth_price_update));
+        pyth::update_price_feeds(pyth_price_update, coins);
+        let btc_price_identifier = x"e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43";
+        let btc_usd_price_id = price_identifier::from_byte_vec(btc_price_identifier);
+        pyth::get_price(btc_usd_price_id)
 
     }
 
