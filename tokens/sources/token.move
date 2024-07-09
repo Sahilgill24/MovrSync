@@ -1,137 +1,266 @@
-/// This module defines a minimal and generic Coin and Balance.
-module tokens_addrx::basic_coin {
+module tokens_addrx::Vault {
+    use std::string;
     use std::signer;
+    use std::option;
+    use std::simple_map::{Self, SimpleMap};
 
-    /// Error codes
-    const ENOT_MODULE_OWNER: u64 = 0;
-    const EINSUFFICIENT_BALANCE: u64 = 1;
-    const EALREADY_HAS_BALANCE: u64 = 2;
-    const EALREADY_INITIALIZED: u64 = 3;
-    const EEQUAL_ADDR: u64 = 4;
+    use aptos_framework::coin;
+    use aptos_framework::account;
+    use aptos_framework::aptos_coin::{AptosCoin};
 
-    struct Coin<phantom CoinType> has store {
-        value: u64
+    const ENOT_INIT: u64 = 0;
+    const ENOT_ENOUGH_MBTC: u64 = 1;
+    const ENOT_DEPLOYER_ADDRESS: u64 = 2;
+
+    struct MBTC has key {}
+
+    struct VaultInfo has key {
+        mint_cap: coin::MintCapability<MBTC>,
+        burn_cap: coin::BurnCapability<MBTC>,
+        total_staked: u64,
+        repayed: SimpleMap<address, u64>,
+        resource_cap: account::SignerCapability
+    }
+    struct DepositList has key {
+        deposit_list: SimpleMap<address, u64>,
     }
 
-    struct Balance<phantom CoinType> has key {
-        coin: Coin<CoinType>
+    /// Constructor
+    fun init_module(sender: &signer) {
+        // Only owner can create admin.
+        assert!(signer::address_of(sender) == @vault, ENOT_DEPLOYER_ADDRESS);
+
+        // Create a resource account to hold the funds.
+        let (resource, resource_cap) = account::create_resource_account(sender, x"01");
+        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<MBTC>(
+            sender,
+            string::utf8(b"MBTC Token"),
+            string::utf8(b"MBTC"),
+            18,
+            false,
+        );
+
+        // We don't need to freeze the tokens.
+        coin::destroy_freeze_cap(freeze_cap);
+
+        // Register the resource account.
+        coin::register<MBTC>(sender);
+        coin::register<AptosCoin>(&resource);
+        // coin::register<MBTC>(&resource);
+
+        move_to(
+            sender,
+            VaultInfo {
+                mint_cap: mint_cap,
+                burn_cap: burn_cap,
+                total_staked: 0,
+                repayed: simple_map::create(),
+                resource_cap: resource_cap
+            },
+        );
     }
 
-    public fun publish_balance<CoinType>(account: &signer) {
-        let empty_coin = Coin<CoinType> { value: 0 };
-        assert!(!exists<Balance<CoinType>>(signer::address_of(account)), EALREADY_HAS_BALANCE);
-        move_to(account, Balance<CoinType> { coin: empty_coin });
+    /// Signet deposits `amount` amount of MBTC into the vault.
+    /// MBTC tokens to mint = (token_amount / total_staked_amount) * total_lp_supply
+    public entry fun deposit(
+        sender: &signer, amountInMove: u64, amountOutUSD: u64
+    ) acquires VaultInfo {
+        let sender_addr = signer::address_of(sender);
+        assert!(exists<VaultInfo>(@vault), ENOT_INIT);
+
+        let vault_info = borrow_global_mut<VaultInfo>(@vault);
+        let resource_signer =
+            account::create_signer_with_capability(&vault_info.resource_cap);
+        let resource_addr = signer::address_of(&resource_signer);
+        // Deposite some amount of tokens and mint shares.
+        coin::transfer<AptosCoin>(sender, resource_addr, amountInMove);
+
+        vault_info.total_staked = vault_info.total_staked + amountOutUSD;
+        simple_map::add(&mut vault_info.repayed, sender_addr, 0);
+        // Mint shares
+        coin::deposit<MBTC>(
+            sender_addr,
+            coin::mint<MBTC>(amountOutUSD, &vault_info.mint_cap),
+        );
+
     }
 
-    spec publish_balance {
-        include Schema_publish<CoinType> {addr: signer::address_of(account), amount: 0};
+    /// Withdraw some amount of AptosCoin based on total_staked of MBTC token.
+    public entry fun withdraw(
+        sender: &signer, amountInMBTC: u64, amountOutMove: u64
+    ) acquires VaultInfo {
+        let sender_addr = signer::address_of(sender);
+        assert!(exists<VaultInfo>(@vault), ENOT_INIT);
+
+        let vault_info = borrow_global_mut<VaultInfo>(@vault);
+
+        // Make sure resource sender's account has enough MBTC tokens.
+        assert!(coin::balance<MBTC>(sender_addr) >= amountInMBTC, ENOT_ENOUGH_MBTC);
+
+        // Burn MBTC tokens of user
+        coin::burn<MBTC>(
+            coin::withdraw<MBTC>(sender, amountInMBTC), &vault_info.burn_cap
+        );
+
+        let resource_account_from_cap: signer =
+            account::create_signer_with_capability(&vault_info.resource_cap);
+        coin::transfer<AptosCoin>(&resource_account_from_cap, sender_addr, amountOutMove);
+
+        // Update the info in the VaultInfo.
+        vault_info.total_staked = vault_info.total_staked - amountInMBTC;
+
+        let repayed_amount =
+            simple_map::borrow_mut(&mut vault_info.repayed, &sender_addr);
+        *repayed_amount = *repayed_amount + amountInMBTC;
+
     }
 
-    spec schema Schema_publish<CoinType> {
-        addr: address;
-        amount: u64;
+    // This function is called from the governance dashboard
+    // To help maintain liquidity backing the user is given a reward with 5% extra MBTC
+    public entry fun liquidate(sender: &signer, amountInMove: u64,amountInMBTC:u64,userToLiquidate:address) acquires VaultInfo {
 
-        aborts_if exists<Balance<CoinType>>(addr);
+        let sender_addr = signer::address_of(sender);
+        assert!(exists<VaultInfo>(@vault), ENOT_INIT);
 
-        ensures exists<Balance<CoinType>>(addr);
-        let post balance_post = global<Balance<CoinType>>(addr).coin.value;
+        let vault_info = borrow_global_mut<VaultInfo>(@vault);
+        let resource_signer =
+            account::create_signer_with_capability(&vault_info.resource_cap);
+        let resource_addr = signer::address_of(&resource_signer);
+        coin::transfer<AptosCoin>(sender, resource_addr, amountInMove);
 
-        ensures balance_post == amount;
+        vault_info.total_staked = vault_info.total_staked + amountInMBTC;
+        // Mint shares
+        coin::deposit<MBTC>(
+            sender_addr,
+            coin::mint<MBTC>(amountInMBTC + (amountInMBTC)/20, &vault_info.mint_cap),
+        );
+        coin::burn_from<MBTC>(userToLiquidate,amountInMBTC,&vault_info.burn_cap);
+
     }
 
-    /// Mint `amount` tokens to `mint_addr`. This method requires a witness with `CoinType` so that the
-    /// module that owns `CoinType` can decide the minting policy.
-    public fun mint<CoinType: drop>(mint_addr: address, amount: u64, _witness: CoinType) acquires Balance {
-        // Deposit `total_value` amount of tokens to mint_addr's balance
-        deposit(mint_addr, Coin<CoinType> { value: amount });
+    #[pure]
+    public fun get_fixed_interest_rate(): u64 {
+        return 150
     }
 
-    spec mint {
-        include DepositSchema<CoinType> {addr: mint_addr, amount};
+    #[view]
+    public fun get_dynamic_interest_rate(account: address, amount: u64): u64 acquires VaultInfo{
+        let vault_info = borrow_global<VaultInfo>(@vault);
+        let contrib_inv = vault_info.total_staked / amount;
+        let dynamic_interest = 1 + contrib_inv + contrib_inv * contrib_inv;
+        return dynamic_interest
     }
 
-    public fun balance_of<CoinType>(owner: address): u64 acquires Balance {
-        borrow_global<Balance<CoinType>>(owner).coin.value
+
+    #[view]
+    public fun get_repayed(account: address): u64 acquires VaultInfo {
+        assert!(exists<VaultInfo>(@vault), ENOT_INIT);
+        let repayed_map = borrow_global<VaultInfo>(@vault).repayed;
+        let val = simple_map::borrow(&repayed_map, &account);
+        return*val
     }
 
-    spec balance_of {
-        pragma aborts_if_is_strict;
-        aborts_if !exists<Balance<CoinType>>(owner);
+    /// Admin can add more amount into the pool thus increasing the total_staked amount
+    /// but the shares are still same to user's will be able to claim more amount of `AptosCoin` back
+    /// than their investments.
+    public entry fun add_funds_to_vault(sender: &signer, amount: u64) acquires VaultInfo {
+        let sender_addr = signer::address_of(sender);
+        // Only owner can create admin.
+        assert!(sender_addr == @vault, ENOT_DEPLOYER_ADDRESS);
+        assert!(exists<VaultInfo>(sender_addr), ENOT_INIT);
+
+        let vault_info = borrow_global_mut<VaultInfo>(sender_addr);
+        let resource_signer =
+            account::create_signer_with_capability(&vault_info.resource_cap);
+        let resource_addr = signer::address_of(&resource_signer);
+        coin::transfer<AptosCoin>(sender, resource_addr, amount);
+
+        // Update the `total_staked` value
+        vault_info.total_staked = vault_info.total_staked + amount;
     }
 
-    /// Transfers `amount` of tokens from `from` to `to`. This method requires a witness with `CoinType` so that the
-    /// module that owns `CoinType` can decide the transferring policy.
-    public fun transfer<CoinType: drop>(from: &signer, to: address, amount: u64, _witness: CoinType) acquires Balance {
-        let from_addr = signer::address_of(from);
-        assert!(from_addr != to, EEQUAL_ADDR);
-        let check = withdraw<CoinType>(from_addr, amount);
-        deposit<CoinType>(to, check);
+    /// Admin can remove funds and invest somewhere else.
+    public entry fun remove_funds_from_vault(sender: &signer, amount: u64) acquires VaultInfo {
+        let sender_addr = signer::address_of(sender);
+        // Only owner can create admin.
+        assert!(sender_addr == @vault, ENOT_DEPLOYER_ADDRESS);
+        assert!(exists<VaultInfo>(sender_addr), ENOT_INIT);
+
+        let vault_info = borrow_global_mut<VaultInfo>(sender_addr);
+        let resource_signer =
+            account::create_signer_with_capability(&vault_info.resource_cap);
+
+        coin::transfer<AptosCoin>(&resource_signer, @vault, amount);
+        // Update the `total_staked` value
+        vault_info.total_staked = vault_info.total_staked - amount;
     }
 
-    spec transfer {
-        let addr_from = signer::address_of(from);
+    #[test_only]
+    use aptos_framework::aptos_account;
+    use aptos_framework::aptos_coin;
+    // use aptos_framework::resource_account;
+    // use aptos_framework::aggregator_factory;
 
-        let balance_from = global<Balance<CoinType>>(addr_from).coin.value;
-        let balance_to = global<Balance<CoinType>>(to).coin.value;
-        let post balance_from_post = global<Balance<CoinType>>(addr_from).coin.value;
-        let post balance_to_post = global<Balance<CoinType>>(to).coin.value;
+    #[test_only]
+    struct FakeCoin {}
 
-        aborts_if !exists<Balance<CoinType>>(addr_from);
-        aborts_if !exists<Balance<CoinType>>(to);
-        aborts_if balance_from < amount;
-        aborts_if balance_to + amount > MAX_U64;
-        aborts_if addr_from == to;
-
-        ensures balance_from_post == balance_from - amount;
-        ensures balance_to_post == balance_to + amount;
+    #[test_only]
+    struct FakeCoinCapabilities has key {
+        mint_cap: coin::MintCapability<FakeCoin>
     }
 
-    fun withdraw<CoinType>(addr: address, amount: u64) : Coin<CoinType> acquires Balance {
-        let balance = balance_of<CoinType>(addr);
-        assert!(balance >= amount, EINSUFFICIENT_BALANCE);
-        let balance_ref = &mut borrow_global_mut<Balance<CoinType>>(addr).coin.value;
-        *balance_ref = balance - amount;
-        Coin<CoinType> { value: amount }
+    #[test_only]
+    const ENOT_CORRECT_MINT_AMOUNT: u64 = 10;
+    const ENOT_COIN_INITIALIZED: u64 = 11;
+    const ENOT_CAPABILITIES: u64 = 12;
+
+    #[test_only]
+    struct AptosCoinCapabilities has key {
+        mint_cap: coin::MintCapability<AptosCoin>,
     }
 
-    spec withdraw {
-        let balance = global<Balance<CoinType>>(addr).coin.value;
-
-        aborts_if !exists<Balance<CoinType>>(addr);
-        aborts_if balance < amount;
-
-        let post balance_post = global<Balance<CoinType>>(addr).coin.value;
-        ensures result == Coin<CoinType> { value: amount };
-        ensures balance_post == balance - amount;
+    #[test_only]
+    public(friend) fun store_aptos_coin_mint_cap(
+        aptos_framework: &signer, mint_cap: coin::MintCapability<AptosCoin>
+    ) {
+        // system_addresses::assert_aptos_framework(aptos_framework);
+        move_to(aptos_framework, AptosCoinCapabilities { mint_cap })
     }
 
-    fun deposit<CoinType>(addr: address, check: Coin<CoinType>) acquires Balance{
-        let balance = balance_of<CoinType>(addr);
-        let balance_ref = &mut borrow_global_mut<Balance<CoinType>>(addr).coin.value;
-        let Coin { value } = check;
-        *balance_ref = balance + value;
+    #[test_only]
+    public fun test_aptos_coin(aptos_framework: &signer) {
+        let (burn_cap, mint_cap) = aptos_coin::initialize_for_test(aptos_framework);
+        store_aptos_coin_mint_cap(aptos_framework, mint_cap);
+        coin::destroy_burn_cap<AptosCoin>(burn_cap);
     }
 
-    spec deposit {
-        let balance = global<Balance<CoinType>>(addr).coin.value;
-        let check_value = check.value;
+    #[test(aptos_framework = @aptos_framework, a = @0xAAAA)]
+    public fun test_fake_aptos_mint_works(
+        aptos_framework: &signer, a: &signer
+    ) {
+        let a_addr = signer::address_of(a);
 
-        aborts_if !exists<Balance<CoinType>>(addr);
-        aborts_if balance + check_value > MAX_U64;
+        aptos_account::create_account(a_addr);
+        test_aptos_coin(aptos_framework);
 
-        let post balance_post = global<Balance<CoinType>>(addr).coin.value;
-        ensures balance_post == balance + check_value;
+        aptos_coin::mint(aptos_framework, a_addr, 100);
+        assert!(coin::balance<AptosCoin>(a_addr) == 100, ENOT_CORRECT_MINT_AMOUNT);
     }
 
-    spec schema DepositSchema<CoinType> {
-        addr: address;
-        amount: u64;
-        let balance = global<Balance<CoinType>>(addr).coin.value;
+    #[test(aptos_framework = @aptos_framework, a = @vault)]
+    public fun test_init_module_works(
+        aptos_framework: &signer, a: &signer
+    ) acquires VaultInfo {
+        let a_addr = signer::address_of(a);
 
-        aborts_if !exists<Balance<CoinType>>(addr);
-        aborts_if balance + amount > MAX_U64;
+        aptos_account::create_account(a_addr);
+        test_aptos_coin(aptos_framework);
 
-        let post balance_post = global<Balance<CoinType>>(addr).coin.value;
-        ensures balance_post == balance + amount;
+        aptos_coin::mint(aptos_framework, a_addr, 100);
+        assert!(coin::balance<AptosCoin>(a_addr) == 100, ENOT_CORRECT_MINT_AMOUNT);
+        init_module(a);
+
+        // Register for MBTC token
+        deposit(a, 100, 1000);
     }
 }
