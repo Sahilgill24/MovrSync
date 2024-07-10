@@ -1055,6 +1055,11 @@
   dependencies:
     defer-to-connect "^2.0.0"
 
+"@thalalabs/surf@^1.6.1":
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/@thalalabs/surf/-/surf-1.6.1.tgz#908d9a944b512f82ff08f7c84c765188dab97dac"
+  integrity sha512-PCdXyLacpX4Gf1AYcg9jAZ0moUjOpqXef2cqz4BIFS3jWDaRCaPGogVgEgef8Ng2X+jU85G1P1AtTSKMQ/s/PQ==
+
 "@types/babel__core@^7.20.5":
   version "7.20.5"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.20.5.tgz#3df15f27ba85319caa07ba08d0721889bb39c017"

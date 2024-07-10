@@ -1,3 +1,4 @@
 ./tokens
 ./build
 .aptos
+/ui/.env

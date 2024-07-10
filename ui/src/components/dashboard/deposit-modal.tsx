@@ -13,8 +13,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MoveRight } from "lucide-react";
 import { type currency } from "@/lib/types";
 import { useCentralStore } from "@/store/central-store";
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { useWallet, InputTransactionData } from '@aptos-labs/wallet-adapter-react';
+import { useSubmitTransaction } from "@thalalabs/surf/hooks";
+import { createSurfClient, createEntryPayload, EntryPayload } from "@thalalabs/surf";
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import { VAULT_ABI } from "../../../abi/vault";
+import { VAULT_CONTRACT } from "../../lib/contract";
+import axios from "axios";
+
 
 
 export default function DepositModal() {
@@ -22,18 +29,67 @@ export default function DepositModal() {
   const [amountInMov, setAmountInMov] = useState<number>(0);
   const [selectedCurrency, setSelectedCurrency] = useState<currency>("mETH");
   const { currency: currencyValues } = useCentralStore();
+  const [val, setval] = useState<number>(0);
+  const [price_usd, setPrice_usd] = useState<number>(0);
 
-  //TODO: mai yaha 1 MOV = 5 dollars leke kr rha hu - modify krdiyo idhar
-  const movToUSD = 5;
-
-
+  
+  const movToUSD = 1;
   const amountInUSD = amountInMov * movToUSD;
   const amountInCurrency = amountInUSD / currencyValues[selectedCurrency];
+  const {
+    isIdle,
+    reset,
+    isLoading: submitIsLoading,
+    error: submitError,
+    submitTransaction,
+    data: submitResult,
+  } = useSubmitTransaction();
 
-  const handleDeposit = () => {
-    console.log("Depositing", amountInMov, selectedCurrency);
-    // TODO: Write logic for depositing funds
-  };
+  const handleDeposit = async () => {
+    const payload = createEntryPayload(VAULT_ABI, {
+      /// @ts-ignore
+      function: "deposit",
+      /// @ts-ignore
+      typeArguments: [],
+      /// @ts-ignore
+      functionArguments: [Math.floor((val * 10 ** 8)), Math.floor((price_usd * 10 ** 18)/57440)]
+    });
+    const tx = await submitTransaction(payload);
+    console.log(tx)
+  }
+    
+  
+  const aptosConfig = new AptosConfig({
+    network: Network.TESTNET,
+  });
+  const aptos = new Aptos(aptosConfig);
+  const client = createSurfClient(aptos);
+
+  const EXCHANGE_RATE_API = import.meta.env.VITE_EXCHANGE_RATE_API
+  const dataFetch = async () => {
+  const res = await axios.get(EXCHANGE_RATE_API)
+  const data = await res.data
+  return data
+  }
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      const data = await dataFetch()
+      const price = data.data.price;
+      if (price) {
+        setPrice_usd(amountInMov * 57440 )
+        setval(amountInMov * 57440 / ((price  )))
+      }
+    }, 750)
+
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [amountInMov])
+
+
+
+
+
 
   return (
     <Dialog>
@@ -57,10 +113,13 @@ export default function DepositModal() {
             <Input
               id="amount"
               type="number"
-              placeholder="Amount to deposit"
-              onChange={(e) => setAmountInMov(parseFloat(e.target.value))}
+              placeholder="Amount of tokens to buy"
+              onChange={(e) => 
+                setAmountInMov(parseFloat(e.target.value)
+                
+              )}
             />
-            <div className="text-muted-foreground">MOV</div>
+            
           </div>
           <Tabs defaultValue="mETH">
             <p className="text-xs text-muted-foreground mb-2">
@@ -74,7 +133,10 @@ export default function DepositModal() {
                 mETH
               </TabsTrigger>
               <TabsTrigger
-                onClick={() => setSelectedCurrency("mBTC")}
+                onClick={() => 
+                  {setSelectedCurrency("mBTC")
+                  
+                  }}
                 value="mBTC"
               >
                 mBTC
@@ -88,26 +150,31 @@ export default function DepositModal() {
             </TabsList>
             <TabsContent value="mETH">
               <ConversionCard
-                amountInUSD={amountInUSD}
+                amountInUSD={amountInMov}
                 amountInCurrency={amountInCurrency}
                 currency="mETH"
               />
             </TabsContent>
             <TabsContent value="mBTC">
               <ConversionCard
-                amountInUSD={amountInUSD}
-                amountInCurrency={amountInCurrency}
+                amountInUSD={price_usd}
+                amountInCurrency={amountInMov}
                 currency="mBTC"
               />
             </TabsContent>
             <TabsContent value="mGOLD">
               <ConversionCard
-                amountInUSD={amountInUSD}
+                amountInUSD={amountInMov}
                 amountInCurrency={amountInCurrency}
                 currency="mGOLD"
               />
             </TabsContent>
           </Tabs>
+          <div className="grid gap-2">
+            
+            <Input id="Amount to pay" value={val} readOnly />
+          </div>
+          
           <Button
             size="lg"
             variant={"expandIcon"}

@@ -73,17 +73,24 @@ module vault::manager {
         let sender_addr = signer::address_of(sender);
         assert!(exists<VaultInfo>(@vault), ENOT_INIT);
 
-
         let vault_info = borrow_global_mut<VaultInfo>(@vault);
         let resource_signer =
             account::create_signer_with_capability(&vault_info.resource_cap);
         let resource_addr = signer::address_of(&resource_signer);
         // Deposite some amount of tokens and mint shares.
         coin::transfer<AptosCoin>(sender, resource_addr, amountInMove);
-
+        
+   
         vault_info.total_staked = vault_info.total_staked + amountOutUSD;
-        simple_map::add(&mut vault_info.repayed, sender_addr, 0);
+        if(!simple_map::contains_key(&vault_info.repayed, &sender_addr)){
+            simple_map::add(&mut vault_info.repayed, sender_addr, 0);
+        };
         // Mint shares
+
+        if(!coin::is_account_registered<MBTC>(sender_addr)){
+            coin::register<MBTC>(sender);
+        };
+
         coin::deposit<MBTC>(
             sender_addr,
             coin::mint<MBTC>(amountOutUSD, &vault_info.mint_cap),

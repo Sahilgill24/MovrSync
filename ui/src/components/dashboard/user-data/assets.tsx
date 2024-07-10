@@ -13,10 +13,11 @@ import { useCentralStore } from "@/store/central-store";
 
 import { useState, useEffect } from "react";
 
+
 export default function Assets() {
-  const [mETH, setmETH] = useState(0.001);
-  const [mBTC, setmBTC] = useState(0.05);
-  const [mGOLD, setmGOLD] = useState(8);
+  const [mETH, setmETH] = useState(0.000);
+  const [mBTC, setmBTC] = useState(0.00);
+  const [mGOLD, setmGOLD] = useState(0);
 
   const [isLoading, setIsLoading] = useState(true);
 
