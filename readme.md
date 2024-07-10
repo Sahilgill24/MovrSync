@@ -27,6 +27,7 @@
 
 
 <img src="/ui/src/assets/5.png">
+<img src="ui/src/assets/6.png">
 
 
 ## Key Features
@@ -105,7 +106,7 @@ During the development of MovrSync, several challenges were encountered:
 
 1. **Pyth Oracle Integration**:
    - The Pyth oracle was not working on the Movement Devnet.
-   - This necessitated the use of the Pyth API in JavaScript to calculate the individual user's loss and profit.
+   - This necessitated the use of an External API in JavaScript to calculate the individual user's loss and profit.
 
 2. **Token Visibility in Petra Wallet**:
    - Tokens were not showing up on the Petra wallet, causing significant distractions and complications during development.
@@ -115,6 +116,7 @@ During the development of MovrSync, several challenges were encountered:
 
 4. **Real-life Token Value**:
    - The inability to add real-life value to the tokens due to the devnet environment posed limitations. Actual token values were required for full functionality.
+   
 
 
 <!-- LICENSE -->

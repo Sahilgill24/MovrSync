@@ -13,29 +13,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MoveRight } from "lucide-react";
 import { type currency } from "@/lib/types";
 import { useCentralStore } from "@/store/central-store";
-import { useState ,useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useWallet, InputTransactionData } from '@aptos-labs/wallet-adapter-react';
 import { useSubmitTransaction } from "@thalalabs/surf/hooks";
 import { createSurfClient, createEntryPayload, EntryPayload } from "@thalalabs/surf";
 import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
-import { VAULT_ABI } from "../../../abi/vault";
+import { VAULT_ABI  } from "../../../abi/vault";
+import {ORACLE_ABI} from "../../../abi/oracle";
 import { VAULT_CONTRACT } from "../../lib/contract";
 import axios from "axios";
 
 
 
 export default function DepositModal() {
-  const { signAndSubmitTransaction,account } = useWallet();
+  const { signAndSubmitTransaction, account } = useWallet();
   const [amountInMov, setAmountInMov] = useState<number>(0);
   const [selectedCurrency, setSelectedCurrency] = useState<currency>("mETH");
   const { currency: currencyValues } = useCentralStore();
   const [val, setval] = useState<number>(0);
   const [price_usd, setPrice_usd] = useState<number>(0);
-
-  
-  const movToUSD = 1;
-  const amountInUSD = amountInMov * movToUSD;
-  const amountInCurrency = amountInUSD / currencyValues[selectedCurrency];
   const {
     isIdle,
     reset,
@@ -52,13 +48,27 @@ export default function DepositModal() {
       /// @ts-ignore
       typeArguments: [],
       /// @ts-ignore
-      functionArguments: [Math.floor((val * 10 ** 8)), Math.floor((price_usd * 10 ** 18)/57440)]
+      functionArguments: [Math.floor((val * 10 ** 8)), Math.floor((price_usd * 10 ** 18) / 57440)]
     });
     const tx = await submitTransaction(payload);
     console.log(tx)
   }
+
+  // const oracledata = async () => {
+  //   const payload = createEntryPayload(ORACLE_ABI, {
+  //     /// @ts-ignore
+  //     function: "get_btc_usd_price",
+  //     /// @ts-ignore
+  //     typeArguments: [],
+  //     /// @ts-ignore
+  //     functionArguments: []
+  //   });
+  //   const btc_usd = await submitTransaction(payload);
     
-  
+
+  // }
+
+
   const aptosConfig = new AptosConfig({
     network: Network.TESTNET,
   });
@@ -67,9 +77,9 @@ export default function DepositModal() {
 
   const EXCHANGE_RATE_API = import.meta.env.VITE_EXCHANGE_RATE_API
   const dataFetch = async () => {
-  const res = await axios.get(EXCHANGE_RATE_API)
-  const data = await res.data
-  return data
+    const res = await axios.get(EXCHANGE_RATE_API)
+    const data = await res.data
+    return data
   }
 
   useEffect(() => {
@@ -77,8 +87,8 @@ export default function DepositModal() {
       const data = await dataFetch()
       const price = data.data.price;
       if (price) {
-        setPrice_usd(amountInMov * 57440 )
-        setval(amountInMov * 57440 / ((price  )))
+        setPrice_usd(amountInMov * 57440)
+        setval(amountInMov * 57440 / ((price)))
       }
     }, 750)
 
@@ -114,12 +124,12 @@ export default function DepositModal() {
               id="amount"
               type="number"
               placeholder="Amount of tokens to buy"
-              onChange={(e) => 
+              onChange={(e) =>
                 setAmountInMov(parseFloat(e.target.value)
-                
-              )}
+
+                )}
             />
-            
+
           </div>
           <Tabs defaultValue="mETH">
             <p className="text-xs text-muted-foreground mb-2">
@@ -133,10 +143,10 @@ export default function DepositModal() {
                 mETH
               </TabsTrigger>
               <TabsTrigger
-                onClick={() => 
-                  {setSelectedCurrency("mBTC")
-                  
-                  }}
+                onClick={() => {
+                  setSelectedCurrency("mBTC")
+
+                }}
                 value="mBTC"
               >
                 mBTC
@@ -151,7 +161,7 @@ export default function DepositModal() {
             <TabsContent value="mETH">
               <ConversionCard
                 amountInUSD={amountInMov}
-                amountInCurrency={amountInCurrency}
+                amountInCurrency={amountInMov}
                 currency="mETH"
               />
             </TabsContent>
@@ -165,16 +175,16 @@ export default function DepositModal() {
             <TabsContent value="mGOLD">
               <ConversionCard
                 amountInUSD={amountInMov}
-                amountInCurrency={amountInCurrency}
+                amountInCurrency={amountInMov}
                 currency="mGOLD"
               />
             </TabsContent>
           </Tabs>
           <div className="grid gap-2">
-            
+
             <Input id="Amount to pay" value={val} readOnly />
           </div>
-          
+
           <Button
             size="lg"
             variant={"expandIcon"}
@@ -185,7 +195,7 @@ export default function DepositModal() {
           >
             Deposit
           </Button>
-     
+
         </div>
       </DialogContent>
     </Dialog>
