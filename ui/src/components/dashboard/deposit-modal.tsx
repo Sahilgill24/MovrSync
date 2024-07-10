@@ -14,15 +14,18 @@ import { MoveRight } from "lucide-react";
 import { type currency } from "@/lib/types";
 import { useCentralStore } from "@/store/central-store";
 import { useState } from "react";
+import { useWallet, InputTransactionData } from '@aptos-labs/wallet-adapter-react';
+
 
 export default function DepositModal() {
-  const { address } = useCentralStore();
+  const { signAndSubmitTransaction,account } = useWallet();
   const [amountInMov, setAmountInMov] = useState<number>(0);
   const [selectedCurrency, setSelectedCurrency] = useState<currency>("mETH");
   const { currency: currencyValues } = useCentralStore();
 
   //TODO: mai yaha 1 MOV = 5 dollars leke kr rha hu - modify krdiyo idhar
   const movToUSD = 5;
+
 
   const amountInUSD = amountInMov * movToUSD;
   const amountInCurrency = amountInUSD / currencyValues[selectedCurrency];
@@ -48,7 +51,7 @@ export default function DepositModal() {
             <Label htmlFor="wallet" className="text-xs text-muted-foreground">
               Wallet Address
             </Label>
-            <Input id="wallet" value={address} readOnly />
+            <Input id="wallet" value={account?.address} readOnly />
           </div>
           <div className="grid grid-cols-[1fr_auto] items-center gap-4">
             <Input
@@ -77,10 +80,10 @@ export default function DepositModal() {
                 mBTC
               </TabsTrigger>
               <TabsTrigger
-                onClick={() => setSelectedCurrency("mUSDC")}
-                value="mUSDC"
+                onClick={() => setSelectedCurrency("mGOLD")}
+                value="mGOLD"
               >
-                mUSDC
+                mGOLD
               </TabsTrigger>
             </TabsList>
             <TabsContent value="mETH">
@@ -97,11 +100,11 @@ export default function DepositModal() {
                 currency="mBTC"
               />
             </TabsContent>
-            <TabsContent value="mUSDC">
+            <TabsContent value="mGOLD">
               <ConversionCard
                 amountInUSD={amountInUSD}
                 amountInCurrency={amountInCurrency}
-                currency="mUSDC"
+                currency="mGOLD"
               />
             </TabsContent>
           </Tabs>
@@ -115,6 +118,7 @@ export default function DepositModal() {
           >
             Deposit
           </Button>
+     
         </div>
       </DialogContent>
     </Dialog>

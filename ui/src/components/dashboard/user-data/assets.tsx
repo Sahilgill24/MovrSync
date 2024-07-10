@@ -16,7 +16,7 @@ import { useState, useEffect } from "react";
 export default function Assets() {
   const [mETH, setmETH] = useState(0.001);
   const [mBTC, setmBTC] = useState(0.05);
-  const [mUSDC, setmUSDC] = useState(8);
+  const [mGOLD, setmGOLD] = useState(8);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,8 +35,8 @@ export default function Assets() {
       value: mBTC,
     },
     {
-      currency: "mUSDC",
-      value: mUSDC,
+      currency: "mGOLD",
+      value: mGOLD,
     },
   ];
 

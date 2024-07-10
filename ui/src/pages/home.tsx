@@ -56,7 +56,7 @@ export default function Home() {
           </motion.div>
           <motion.div className="mb-6" variants={childVariants}>
             <p className="text-xl font-medium tracking-tight">
-              A good description of the platform
+            Transforming real-world assets into synthetic treasures for seamless trading
             </p>
           </motion.div>
           <motion.div variants={childVariants}>

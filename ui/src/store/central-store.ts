@@ -1,8 +1,9 @@
 import { create } from "zustand";
 
+
 interface currencyValue {
   mETH: number;
-  mUSDC: number;
+  mGOLD: number;
   mBTC: number;
 }
 
@@ -18,18 +19,18 @@ interface CentralStoreTypes {
 
 export const useCentralStore = create<CentralStoreTypes>((set) => ({
   //TODO: Inko 0 krna hai last mei aur fetch krna hai
-  address: "0x1234567890abcdef1234567890abcdef12345678",
+  address: "34567890abcdef1234567890abcdef12345678",
   setAddress: (address: string) => set({ address }),
 
   currency: {
     mETH: 3500.45,
-    mUSDC: 1.03,
+    mGOLD: 1.03,
     mBTC: 65152,
   },
   setETH: (value: number) =>
     set((state) => ({ currency: { ...state.currency, mETH: value } })),
   setUSDC: (value: number) =>
-    set((state) => ({ currency: { ...state.currency, mUSDC: value } })),
+    set((state) => ({ currency: { ...state.currency, mGOLD: value } })),
   setBTC: (value: number) =>
     set((state) => ({ currency: { ...state.currency, mBTC: value } })),
 }));

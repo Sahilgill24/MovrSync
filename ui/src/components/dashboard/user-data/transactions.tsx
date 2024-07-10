@@ -29,7 +29,7 @@ export default function Transactions() {
       type: "withdraw",
     },
     {
-      currency: "mUSDC",
+      currency: "mGOLD",
       value: 300,
       date: new Date("2023-03-05"),
       type: "deposit",
@@ -47,7 +47,7 @@ export default function Transactions() {
       type: "deposit",
     },
     {
-      currency: "mUSDC",
+      currency: "mGOLD",
       value: 500,
       date: new Date("2023-06-01"),
       type: "withdraw",
@@ -65,7 +65,7 @@ export default function Transactions() {
       type: "withdraw",
     },
     {
-      currency: "mUSDC",
+      currency: "mGOLD",
       value: 1000,
       date: new Date("2023-07-20"),
       type: "deposit",
@@ -83,7 +83,7 @@ export default function Transactions() {
       type: "deposit",
     },
     {
-      currency: "mUSDC",
+      currency: "mGOLD",
       value: 250,
       date: new Date("2023-09-10"),
       type: "withdraw",

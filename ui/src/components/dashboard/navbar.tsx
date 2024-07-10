@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
-import { CopyAddress } from "@/components/ui/copy-address";
+
 import DepositModal from "./deposit-modal";
-import { useCentralStore } from "@/store/central-store";
+
+import "@aptos-labs/wallet-adapter-ant-design/dist/index.css";
+import { WalletSelector } from "@aptos-labs/wallet-adapter-ant-design";
 
 export default function NavBar() {
-  const { address } = useCentralStore();
+  
   return (
     <>
       <header className="flex items-center justify-between bg-background pt-4 pb-1 shadow-t shadow-sm">
@@ -14,10 +16,8 @@ export default function NavBar() {
           </Link>
         </div>
         <div className="space-x-4">
-          <CopyAddress
-            className="rounded-full hover:bg-white/5"
-            address={address}
-          />
+          
+          <WalletSelector />
           <DepositModal />
         </div>
       </header>

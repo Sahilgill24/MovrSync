@@ -1,4 +1,4 @@
-export type currency = "mETH" | "mBTC" | "mUSDC";
+export type currency = "mETH" | "mBTC" | "mGOLD";
 
 export interface asset {
   currency: currency;
