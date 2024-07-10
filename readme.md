@@ -8,7 +8,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Sahilgill24/MovrSync">
-    <img src="/ui/src/assets/1.png" alt="Logo" width="100" height="100">
+    <img src="/ui/src/assets/1.png">
   </a>
 
 <h1 align="center">MovrSync</h3>
@@ -17,7 +17,7 @@
   Welcome to MovrSync, developed for the Movement Labs Devnet. This decentralized application (dApp) offers a groundbreaking way to trade real-world assets (RWAs) within the Aptos ecosystem through synthetic assets.
 
 </p>
-    <
+    
     ·
     <a href="https://github.com/Sahilgill24/MovrSync/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     ·
@@ -52,13 +52,16 @@ Our dApp enables users to create synthetic assets for RWAs in the form of tokens
 - **Share Calculation**: Each user’s share of the debt pool is calculated based on their contribution.
 - **Profit and Loss**: As the value of the global debt pool fluctuates, so do the users’ profits and losses, proportionate to their share.
 
-## Benefits
+<!-- ## Benefits
 
 - **Access to RWAs**: Users gain exposure to real-world assets without the complexities of direct ownership.
 - **Leverage**: Users can leverage their MOVE or APT tokens to gain synthetic exposure to BTC, ETH, and Gold.
-- **Decentralization**: The entire process is managed on the blockchain, ensuring transparency and security.
+- **Decentralization**: The entire process is managed on the blockchain, ensuring transparency and security. -->
 
 
+## Working and UserFlow
+
+<img src="ui/src/assets/3.png">
 
 
 <!-- LICENSE -->
