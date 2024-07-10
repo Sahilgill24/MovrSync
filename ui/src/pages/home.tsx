@@ -51,7 +51,7 @@ export default function Home() {
               size={"xxl"}
               weight={"bold"}
             >
-              MovSynth
+              MovrSync
             </GradientHeading>
           </motion.div>
           <motion.div className="mb-6" variants={childVariants}>

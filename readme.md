@@ -8,7 +8,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Sahilgill24/MovrSync">
-    <img src="/ui/src/assets/1.png">
+    <img src="/ui/src/assets/4.png">
   </a>
 
 <h1 align="center">MovrSync</h3>
@@ -59,9 +59,36 @@ Our dApp enables users to create synthetic assets for RWAs in the form of tokens
 - **Decentralization**: The entire process is managed on the blockchain, ensuring transparency and security. -->
 
 
-## Working and UserFlow
+## Working 
 
 <img src="ui/src/assets/3.png">
+
+1. **Home Page**:
+   - Users land on the home page of the dApp.
+
+2. **User Dashboard**:
+   - Users navigate to the user dashboard where they can connect their Petra wallet to the dApp.
+
+3. **Deposit Modal**:
+   - Users click on the "Deposit" button, which opens a modal.
+   - In the modal, users can choose the amount of synthetic tokens they want to buy.
+   - As users fill in the amount, the required deposit in MOVE tokens is calculated and displayed.
+
+4. **Collateralization Calculation**:
+   - Under the hood, a JavaScript function is called.
+   - This function interacts with the smart contract to extract the collateralization ratio.
+   - The collateralization ratio is based on the volatility of the resource over the past 24 hours.
+
+5. **Token Minting**:
+   - Once the user deposits the required MOVE tokens, they receive their synthetic tokens (e.g., MBTC).
+
+6. **Pegging to Real World Value**:
+   - The MBTC token is pegged to the real value of BTC using the Pyth oracle.
+   - The real-world value can be realized through our liquidity pools, funded by the MOVE tokens deposited by users.
+
+7. **Profit and Loss Calculation**:
+   - As the value of MBTC changes, the vault manager contract calculates the user's percentage of the total debt pool.
+   - The user's corresponding profit or loss is then determined based on the change in the debt pool value.
 
 
 <!-- LICENSE -->
