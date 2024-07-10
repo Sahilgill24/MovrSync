@@ -23,7 +23,7 @@
 <br/>
 
 
-Our dApp enables users to create synthetic assets for RWAs in the form of tokens, eliminating the need for direct ownership of the physical assets. This functionality mirrors the mechanics of a derivatives market.
+<p align="center">Our dApp enables users to create synthetic assets for RWAs in the form of tokens, eliminating the need for direct ownership of the physical assets. This functionality mirrors the mechanics of a derivatives market.</p>
 
 
 <img src="/ui/src/assets/5.png">
@@ -66,6 +66,11 @@ Our dApp enables users to create synthetic assets for RWAs in the form of tokens
 Above here is an example to demonstrate the working of MovrSync , The person's deposited amount is added to the total debt pool and the profit and loss
 is calculated on the basic of the person's percentage contribution to the debt pool and P/L is calculated on that basis.
 
+I believe the benefit of using this is that you can minimize your losses with the trade off of losing out on some of your potential profits.
+  
+This might not seem optimal, but when it comes to losses, they are also minimized.  
+
+So basically, you can minimize risk while minimizing reward and then the competitor’s loss is your reward and their reward is your loss.
 1. **Home Page**:
    - Users land on the home page of the dApp.
 
