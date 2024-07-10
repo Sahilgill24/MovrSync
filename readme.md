@@ -60,7 +60,7 @@
 
 ## Working 
 
-<img src="ui/src/assets/3.png">
+
 
 <h3>Example</h3>
 
@@ -72,6 +72,10 @@ I believe the benefit of using this is that you can minimize your losses with th
 This might not seem optimal, but when it comes to losses, they are also minimized.  
 
 So basically, you can minimize risk while minimizing reward and then the competitor’s loss is your reward and their reward is your loss.
+
+<img src="ui/src/assets/3.png">
+
+
 1. **Home Page**:
    - Users land on the home page of the dApp.
 
@@ -116,7 +120,7 @@ During the development of MovrSync, several challenges were encountered:
 
 4. **Real-life Token Value**:
    - The inability to add real-life value to the tokens due to the devnet environment posed limitations. Actual token values were required for full functionality.
-   
+
 
 
 <!-- LICENSE -->
