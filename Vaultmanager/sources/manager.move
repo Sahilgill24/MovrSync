@@ -7,6 +7,7 @@ module vault::manager {
     use aptos_framework::coin;
     use aptos_framework::account;
     use aptos_framework::aptos_coin::{AptosCoin};
+    //use oracle::oracle::get_btc_usd_price;
 
     const ENOT_INIT: u64 = 0;
     const ENOT_ENOUGH_MBTC: u64 = 1;
@@ -126,7 +127,7 @@ module vault::manager {
     // and do the calculation in the JS code
     // will be based on the volatility of the market
     //This will be called for the BTC part and the calculations shall be done there
-    public fun get_dynamic_interest_rate(account: address, amount: u64): u64 acquires VaultInfo{
+    public fun get_dynamic_interest_rate(amount: u64): u64 acquires VaultInfo{
         let vault_info = borrow_global<VaultInfo>(@vault);
         let contrib_inv = vault_info.total_staked / amount;
         return contrib_inv
