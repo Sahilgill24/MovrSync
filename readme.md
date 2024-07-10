@@ -16,13 +16,7 @@
   <p align="center" style="width:76ch;">
   Welcome to MovrSync, developed for the Movement Labs Devnet. This decentralized application (dApp) offers a groundbreaking way to trade real-world assets (RWAs) within the Aptos ecosystem through synthetic assets.
 
-</p>
-    
-    ·
-    <a href="https://github.com/Sahilgill24/MovrSync/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
-    ·
-    <a href="https://github.com/Sahilgill24/MovrSync/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
-  </p>
+
 </div>
 
 
@@ -30,6 +24,10 @@
 
 
 Our dApp enables users to create synthetic assets for RWAs in the form of tokens, eliminating the need for direct ownership of the physical assets. This functionality mirrors the mechanics of a derivatives market.
+
+
+<img src="/ui/src/assets/5.png">
+
 
 ## Key Features
 
@@ -63,6 +61,11 @@ Our dApp enables users to create synthetic assets for RWAs in the form of tokens
 
 <img src="ui/src/assets/3.png">
 
+<h3>Example</h3>
+
+Above here is an example to demonstrate the working of MovrSync , The person's deposited amount is added to the total debt pool and the profit and loss
+is calculated on the basic of the person's percentage contribution to the debt pool and P/L is calculated on that basis.
+
 1. **Home Page**:
    - Users land on the home page of the dApp.
 
@@ -89,6 +92,24 @@ Our dApp enables users to create synthetic assets for RWAs in the form of tokens
 7. **Profit and Loss Calculation**:
    - As the value of MBTC changes, the vault manager contract calculates the user's percentage of the total debt pool.
    - The user's corresponding profit or loss is then determined based on the change in the debt pool value.
+
+
+## Challenges
+
+During the development of MovrSync, several challenges were encountered:
+
+1. **Pyth Oracle Integration**:
+   - The Pyth oracle was not working on the Movement Devnet.
+   - This necessitated the use of the Pyth API in JavaScript to calculate the individual user's loss and profit.
+
+2. **Token Visibility in Petra Wallet**:
+   - Tokens were not showing up on the Petra wallet, causing significant distractions and complications during development.
+
+3. **New Ecosystem**:
+   - This was the first time working on the Aptos ecosystem, making the entire development process a learning curve.
+
+4. **Real-life Token Value**:
+   - The inability to add real-life value to the tokens due to the devnet environment posed limitations. Actual token values were required for full functionality.
 
 
 <!-- LICENSE -->
