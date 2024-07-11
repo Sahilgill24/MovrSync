@@ -22,7 +22,7 @@ import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 
 export default function Assets() {
   const [mETH, setmETH] = useState(0.000);
-  const [mBTC, setmBTC] = useState(0.00);
+  const [mBTC, setmBTC] = useState(0.0000355);
   const [mGOLD, setmGOLD] = useState(0);
 
   const [isLoading, setIsLoading] = useState(true);
