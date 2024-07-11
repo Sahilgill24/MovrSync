@@ -20,5 +20,9 @@ module oracle::oracle {
         let btc_usd_price_id = price_identifier::from_byte_vec(btc_price_identifier);
         pyth::get_price(btc_usd_price_id)
     }
+    pyth::get_update_fee(
+    vec![<update_data>]
+    )
+    // this will be used for the calcualtion of the collateralization ratio as well as the liquidation price
 }
  

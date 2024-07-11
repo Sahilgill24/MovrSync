@@ -12,6 +12,12 @@ import { type asset } from "@/lib/types";
 import { useCentralStore } from "@/store/central-store";
 
 import { useState, useEffect } from "react";
+import { useSubmitTransaction } from "@thalalabs/surf/hooks";
+import { createSurfClient, createEntryPayload, EntryPayload } from "@thalalabs/surf";
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+// import { VAULT_ABI  } from "../../../abi/vault";
+// import {ORACLE_ABI} from "../../../abi/oracle";
+
 
 
 export default function Assets() {
@@ -24,6 +30,22 @@ export default function Assets() {
   // Isko dekh liyo yahi calculate krna hai ya peeche se bhejega
   const [profit, setProfit] = useState(15.46);
   const [profitPercentage, setProfitPercentage] = useState(1.5);
+
+  // const oracledata = async () => {
+  //   const payload = createEntryPayload(ORACLE_ABI, {
+  //     /// @ts-ignore
+  //     function: "get_btc_usd_price",
+  //     /// @ts-ignore
+  //     typeArguments: [],
+  //     /// @ts-ignore
+  //     functionArguments: []
+  //   });
+  //   const btc_usd = await submitTransaction(payload);
+    
+
+  // }
+  // just setting this abi oracle abi properly and then using this we can calculate the profit and loss
+
 
   const { currency: currencyValues } = useCentralStore();
   const assets: asset[] = [
@@ -41,7 +63,7 @@ export default function Assets() {
     },
   ];
 
-  // Idhar data fetch krlo
+  
   useEffect(() => {
     setTimeout(() => {
       setIsLoading(false);
